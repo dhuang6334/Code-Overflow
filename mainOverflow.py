@@ -317,7 +317,7 @@ class Maze:
                 if self.matrix[y][x] == 1:
                     cands.append((x,y))
         random_cand = cands[random.randint(0, len(cands) - 1)]
-        teacher = Enemy(enemy_key, random_cand.x, random_cand.y)
+        teacher = Enemy(enemy_key, 1, 1)
 
         pass
 
@@ -391,8 +391,8 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         
         #TODO convert coordinate for enemy 
-        self.abs_pos_x = ((math.floor(posX/2) * (1 + extend_size))  if posX % 2 == 0 else ((posX/2) * (1 + math.ceil(extend_size/2)) - 1 ))
-        self.abs_pos_y = ((math.floor(posY/2) * (1 + extend_size))  if posY % 2 == 0 else ((posY/2) * (1 + math.ceil(extend_size/2)) - 1 ))
+        self.abs_pos_x = int(1.5 * tile_size) #( (((posX + 1)/2) * (1 + math.ceil(extend_size/2)) - 1 ) if (posX + 1) % 2 == 0 else (math.floor((posX + 1)/2) * (1 + extend_size)))
+        self.abs_pos_y = int(1.5 * tile_size) #( (((posY + 1)/2) * (1 + math.ceil(extend_size/2)) - 1 ) if (posY + 1) % 2 == 0 else (math.floor((posY + 1)/2) * (1 + extend_size)))
         self.rel_pos_x = 0  # ((((1 + extend_size) * tiles_x) + 1) * tile_size)/2  # default/temporary
         self.rel_pos_y = 0  # ((((1 + extend_size) * tiles_y) + 1) * tile_size)/2  # this calculation uses center not topleft
         
@@ -416,6 +416,7 @@ class Enemy(pygame.sprite.Sprite):
             self.frame_ind = ((self.frame_ind + 1) % len(self.frames))
             self.update_frame()
             self.counter = 0
+            self.image = self.frame[self.frame_ind]
 
     def update_rel_borders(self):
         rel_dict['top'] = max(self.rect.centery - screen_height / 2, 0)
@@ -771,11 +772,14 @@ class GameState:
         screen.fill(bg)
         player_group.update('go_to_rel')
         other_sprites.update('go_to_rel')
+        
+        enemies.update('animation')
         player_group.update('animation')  # must be after go to rel
         
         on_screen.draw(screen)
         player_group.draw(screen)  # needs to come after the tiles to be in front
-        
+        enemies.draw(screen)
+
         pygame.display.flip()
 
     def load_level(self, level_num):
