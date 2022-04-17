@@ -6,7 +6,6 @@ import sys
 import os
 import time
 
-
 # STRUCTURE CLASSES
 class Maze:
     def __init__(self):
