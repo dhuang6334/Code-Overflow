@@ -779,6 +779,9 @@ hero = Player(hero_key)  # make sure is after player group & frames setup & befo
 
 tiles = []  # Zero indexed coordinate is now using x , y
 instantiate_cells()  # make sure it's after I create all_sprites group and variable for extend size
+
+music = pygame.mixer.music.load("music/New age.mp3")
+pygame.mixer.music.play(-1)
 while True:
     random_int = random.randint(0, 100)
     start_time = time.perf_counter()
@@ -790,8 +793,8 @@ while True:
             res = (screen_width, screen_height)
             screen = pygame.display.set_mode(res)
             color = (255, 255, 255)
-            color_light = (170, 170, 170)
-            color_dark = (100, 100, 100)
+            color_light = (253, 8, 8)
+            color_dark = (247, 111, 111)
             width = screen.get_width()
             height = screen.get_height()
             smallfont = pygame.font.SysFont('Corbel', 30)
@@ -804,17 +807,31 @@ while True:
             problem = question_json[subject][random.randint(0, len(question_json[subject]) - 1)]
             question = largefont.render(problem[0], True, color)
             right = smallfont.render(problem[1], True, color)
-            wrong1 = smallfont.render(problem[2], True, color)
-            wrong2 = ""
-            wrong3 = ""
+            choice1 = smallfont.render(problem[1], True, color)
+            choice2 = smallfont.render(problem[2], True, color)
+            choice3 = ""
+            choice4 = ""
             try:
-                wrong2 = smallfont.render(problem[3], True, color)
+                choice3 = smallfont.render(problem[3], True, color)
             except:
-                wrong2 = smallfont.render('', True, color)
+                choice3 = smallfont.render('', True, color)
             try:
-                wrong3 = smallfont.render(problem[4], True, color)
+                choice4 = smallfont.render(problem[4], True, color)
             except:
-                wrong3 = smallfont.render("", True, color)
+                choice4 = smallfont.render("", True, color)
+
+            random_ = random.randint(1,4)
+            if random_ == 1:
+                pass
+            if random_ == 2:
+                var = choice1 == choice2
+                choice2 = right
+            if random_ == 3:
+                var = choice1 == choice3
+                choice3 = right
+            if random_ == 4:
+                var = choice1 == choice4
+                choice4 = right
             run = True
             while run:
                 for ev in pygame.event.get():
@@ -830,23 +847,27 @@ while True:
                         if 10 <= mouse[1] <=  210 and 10 <= mouse[0] <= screen_width - 10:
                             pass
                         if 250 <= mouse[1] <= 350 and 10 <= mouse[0] <= screen_width/2 - 10:
-                            text = largefont.render(problem[0], True, (0, 255, 0))
-                            screen.blit(text, (screen_width / 2 - 100, screen_height / 2 - 100))
-                            hero.correct()
+                            if random_ == 1:
+                                hero.correct();
+                                run = False
+                            hero.wrong()
                             run = False
                         if 250 <= mouse[1] <= 350 and screen_width/2 + 10 <= mouse[0] <= screen_width - 10:
-                            text = largefont.render(problem[0], True, (0, 255, 0))
-                            screen.blit(text, (screen_width / 2 - 100, screen_height / 2 - 100))
+                            if random_ == 2:
+                                hero.correct();
+                                run = False
                             hero.wrong()
                             run = False
                         if 400 <= mouse[1] <= 500 and 10 <= mouse[0] <= screen_width/2 - 10:
-                            text = largefont.render(problem[0], True, (0, 255, 0))
-                            screen.blit(text, (screen_width / 2 - 100, screen_height / 2 - 100))
+                            if random_ == 3:
+                                hero.correct();
+                                run = False
                             hero.wrong()
                             run = False
                         if 400 <= mouse[1] <= 500 and screen_width/2 - 10 <= mouse[0] <= screen_width - 10:
-                            text = largefont.render(problem[0], True, (0, 255, 0))
-                            screen.blit(text, (screen_width / 2 - 100, screen_height / 2 - 100))
+                            if random_ == 4:
+                                hero.correct();
+                                run = False
                             hero.wrong()
                             run = False
                 screen.fill((60, 25, 60))
@@ -862,25 +883,25 @@ while True:
                     pygame.draw.rect(screen, color_light, [10, 250, screen_width/2 - 20, 200])
                 else:
                     pygame.draw.rect(screen, color_dark, [10, 250, screen_width/2 - 20, 200])
-                screen.blit(right, (30, 270))
+                screen.blit(choice1, (30, 270))
 
                 if 250 <= mouse[1] <= 350 and screen_width/2 + 10 <= mouse[0] <= screen_width - 10:
                     pygame.draw.rect(screen, color_light, [screen_width/2 + 10, 250, screen_width - 20, 200])
                 else:
                     pygame.draw.rect(screen, color_dark, [screen_width/2 + 10, 250, screen_width - 20, 200])
-                screen.blit(wrong1, (screen_width/2 +50, 270))
+                screen.blit(choice2, (screen_width/2 +50, 270))
 
                 if 400 <= mouse[1] <= 500 and 10 <= mouse[0] <= screen_width/2 - 10:
                     pygame.draw.rect(screen, color_light, [10, 400, screen_width - 200, 200])
                 else:
                     pygame.draw.rect(screen, color_dark, [10, 400, screen_width - 200, 200])
-                screen.blit(wrong2, (30, 420))
+                screen.blit(choice3, (30, 420))
 
                 if 400 <= mouse[1] <= 500 and screen_width/2 + 10 <= mouse[0] <= screen_width - 10:
                     pygame.draw.rect(screen, color_light, [screen_width/2 + 10, 400, screen_width - 20, 200])
                 else:
                     pygame.draw.rect(screen, color_dark, [screen_width/2 + 10, 400, screen_width - 20, 200])
-                screen.blit(wrong3, (screen_width/2 + 50, 420))
+                screen.blit(choice3, (screen_width/2 + 50, 420))
 
 
                 pygame.display.update()
