@@ -779,7 +779,7 @@ hero = Player(hero_key)  # make sure is after player group & frames setup & befo
 tiles = []  # Zero indexed coordinate is now using x , y
 instantiate_cells()  # make sure it's after I create all_sprites group and variable for extend size
 
-music = pygame.mixer.music.load("music/New age.mp3")
+music = pygame.mixer.music.load("music/new_age.mp3")
 pygame.mixer.music.play(-1)
 while True:
     random_int = random.randint(0, 100)
@@ -823,13 +823,13 @@ while True:
             if random_ == 1:
                 pass
             if random_ == 2:
-                var = choice1 == choice2
+                choice1 == choice2
                 choice2 = right
             if random_ == 3:
-                var = choice1 == choice3
+                choice1 == choice3
                 choice3 = right
             if random_ == 4:
-                var = choice1 == choice4
+                choice1 == choice4
                 choice4 = right
             run = True
             while run:
