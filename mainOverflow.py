@@ -13,7 +13,7 @@ class Maze:
         # self.matrix_coord = [0, 0]
 
         self.start_coord = (tiles_x, tiles_y)
-        self.matrix = []
+        self.matrix = [] # matrix is a nested list with the first index as y and the second index as x
 
     '''def __init__(sprite):
         sprite.x = 0
@@ -309,6 +309,17 @@ class Maze:
             y += 1
             xpos = 0
             x = 0
+    
+    def spawn_enemies(self):
+        cands = []
+        for y in range(len(self.matrix)):
+            for x in range(len(self.matrix[0])):
+                if self.matrix[y][x] == 1:
+                    cands.append((x,y))
+        random_cand = cands[random.randint(0, len(cands) - 1)]
+        teacher = Enemy(enemy_key, random_cand.x, random_cand.y)
+
+        pass
 
     def init_level(self):
 
@@ -372,9 +383,89 @@ class Cell(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, frames_key, posX, posY): # posx and posy would be the general position (not accounting for the "extended" maze)
         super().__init__()
+        self.frame_ind = 0
+        self.frames = images_dict[frames_key]
+        self.image = self.frames[self.frame_ind]
+        self.rect = self.image.get_rect()
+        
+        #TODO convert coordinate for enemy 
+        self.abs_pos_x = ((math.floor(posX/2) * (1 + extend_size))  if posX % 2 == 0 else ((posX/2) * (1 + math.ceil(extend_size/2)) - 1 ))
+        self.abs_pos_y = ((math.floor(posY/2) * (1 + extend_size))  if posY % 2 == 0 else ((posY/2) * (1 + math.ceil(extend_size/2)) - 1 ))
+        self.rel_pos_x = 0  # ((((1 + extend_size) * tiles_x) + 1) * tile_size)/2  # default/temporary
+        self.rel_pos_y = 0  # ((((1 + extend_size) * tiles_y) + 1) * tile_size)/2  # this calculation uses center not topleft
+        
+        self.rect.topleft = (self.abs_pos_x, self.abs_pos_y)
+        
+        other_sprites.add(self)
+        enemies.add(self)
 
+        self.counter = 0
+        self.pos_x = math.floor(self.abs_pos_x / tile_size)
+        self.pos_y = math.floor(self.abs_pos_y / tile_size)
+
+    def update_frame(self):
+        global mouse_x, mouse_y
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        self.image = pygame.transform.flip(self.frames[self.frame_ind], self.facing('right'), False)
+
+    def animation(self):
+        self.counter += 1
+        if (self.counter % (fps * player_ani_speed)) == 0:
+            self.frame_ind = ((self.frame_ind + 1) % len(self.frames))
+            self.update_frame()
+            self.counter = 0
+
+    def update_rel_borders(self):
+        rel_dict['top'] = max(self.rect.centery - screen_height / 2, 0)
+        rel_dict['bottom'] = min(self.rect.centery + screen_height / 2, total_height)
+        rel_dict['left'] = max(self.rect.centerx - screen_width / 2, 0)
+        rel_dict['right'] = min(self.rect.centerx + screen_width / 2, total_width)
+        self.pos_x = math.floor(self.rect.centerx / tile_size)
+        self.pos_y = math.floor(self.rect.centery / tile_size)
+
+    def update(self, function='update'): # default function is update
+        # global keys
+        # print(self.pos_x, self.pos_y)
+        if function == 'update':
+            self.action()
+            self.update_rel_borders()
+
+            '''print(self.abs_pos_x, self.abs_pos_y)
+            print(self.rect.x, self.rect.y)'''  # for debugging purposes to see if location is a screen relative visual trick
+
+        if function == 'animation':
+            self.animation()
+
+        if function == 'go_to_rel':
+
+            if hero.abs_pos_x <= screen_width:
+                self.rel_pos_x = int(self.abs_pos_x - rel_dict['left'])
+            elif hero.abs_pos_x >= total_width - screen_width:
+                self.rel_pos_x = int(screen_width - (rel_dict['right'] - self.abs_pos_x))
+            else:
+                self.rel_pos_x = screen_width / 2  # int(self.abs_pos_x - rel_dict['left'])  # both work I think
+            if hero.abs_pos_y <= screen_height:
+                self.rel_pos_y = int(self.abs_pos_y - rel_dict['top'])
+            elif hero.abs_pos_y >= total_height - screen_height:
+                self.rel_pos_y = int(screen_height - (rel_dict['bottom'] - self.abs_pos_y))
+            else:
+                self.rel_pos_y = screen_height / 2  # int(self.abs_pos_y - rel_dict['top'])  # both work I think
+            '''rel_x = int(max(self.rect.x - rel_dict['left'],
+                            screen_width - (rel_dict['right'] - self.rect.x)))  # both work I think
+
+            rel_y = int(max(self.rect.y - rel_dict['top'],
+                            screen_height - (rel_dict['bottom'] - self.rect.y)))  # both work I think'''
+
+            self.rect.x = self.rel_pos_x
+            self.rect.y = self.rel_pos_y
+
+            pass
+        if function == 'go_to_abs':
+            self.rect.x = self.abs_pos_x
+            self.rect.y = self.abs_pos_y
+            pass
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, frames_key):
@@ -556,10 +647,6 @@ class Player(pygame.sprite.Sprite):
             self.update_frame()
             self.counter = 0
 
-    '''def update_pos(self):
-        self.pos_x = math.floor(self.abs_pos_x / tile_size)
-        self.pos_y = math.floor(self.abs_pos_y / tile_size)'''
-
     def update_rel_borders(self):
         rel_dict['top'] = max(self.rect.centery - screen_height / 2, 0)
         rel_dict['bottom'] = min(self.rect.centery + screen_height / 2, total_height)
@@ -678,19 +765,17 @@ class GameState:
         # calculation stage
         player_group.update('go_to_abs')
         other_sprites.update('go_to_abs')
-        projectiles.update('go_to_abs')
         player_group.update()
 
         # screen relative visual stage
         screen.fill(bg)
         player_group.update('go_to_rel')
         other_sprites.update('go_to_rel')
-        projectiles.update('go_to_rel')
         player_group.update('animation')  # must be after go to rel
+        
         on_screen.draw(screen)
         player_group.draw(screen)  # needs to come after the tiles to be in front
-        projectiles.update()
-        #projectiles.draw(screen)
+        
         pygame.display.flip()
 
     def load_level(self, level_num):
@@ -777,7 +862,7 @@ clock = pygame.time.Clock()
 tile_size = 32
 tiles_x = 17  # int(544/tile_size)  # 110
 tiles_y = 10  # int(320/tile_size)  # 70
-extend_size = 3
+extend_size = 3 # only works if it is odd number
 
 fps = 60
 player_vel = 12
@@ -797,6 +882,8 @@ format_images_dict(images_dict, wall_key, 'catacombs_{}.png', 11)  # wall
 # animation frames
 format_images_dict(images_dict, hero_key, 'hooded_figure_{}.png', 1)
 format_images_dict(images_dict, hero_key, 'shieldMage_redKnight_{}.png', 1, '5(all frames)')
+format_images_dict(images_dict, enemy_key, 'armored_knight_{}.png', 1, '5(all frames)')
+
 #format_images_dict(images_dict, 'hero_frames', 'hooded_figure_{}.png', 1, 'up') # can create keys if they are non-existent
 #format_images_dict(images_dict['hero_frames'], 'down', 'hooded_figure_{}.png', 1)  # only works if 'hero_frames' key is a thingformat_images_dict(images_dict, enemy_key, 'hooded_figure_{}.png', 1, '5(all frames)', '')
 print(images_dict)
@@ -817,10 +904,11 @@ rel_dict = {}
 
 # sprite setup
 on_screen = pygame.sprite.Group()
-other_sprites = pygame.sprite.Group()
-obstacles = pygame.sprite.Group()
-projectiles = pygame.sprite.Group()
+other_sprites = pygame.sprite.Group() #group of every sprite besides player sprite
 player_group = pygame.sprite.GroupSingle()
+
+obstacles = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
 
 hero = Player(hero_key)  # make sure is after player group & frames setup & before instantiate cells
 
