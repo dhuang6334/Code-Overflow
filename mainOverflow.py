@@ -782,12 +782,14 @@ instantiate_cells()  # make sure it's after I create all_sprites group and varia
 music = pygame.mixer.music.load("music/new_age.mp3")
 pygame.mixer.music.play(-1)
 while True:
-    random_int = random.randint(0, 100)
+    game_state.state_manager()
+    clock.tick(fps)
+    """random_int = 100
     start_time = time.perf_counter()
     total_time = 0
     while True:
         total_time += start_time
-        if total_time > random_int*20:
+        if total_time > random_int:
             end_time = time.perf_counter()
             res = (screen_width, screen_height)
             screen = pygame.display.set_mode(res)
@@ -904,6 +906,4 @@ while True:
 
 
                 pygame.display.update()
-                total_time = 0
-        game_state.state_manager()
-        clock.tick(fps)
+                total_time = 0"""
